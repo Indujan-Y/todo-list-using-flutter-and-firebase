@@ -10,12 +10,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool personal = true, college = false, office = false, suggest = false;
+  TextEditingController todoController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.greenAccent,
-        onPressed: () {},
+        onPressed: () {
+          openbox();
+        },
         child: const Icon(
           Icons.add,
           size: 35,
@@ -191,29 +194,109 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             CheckboxListTile(
               activeColor: Colors.greenAccent.shade400,
-              value: suggest, onChanged: (newValue) {
+              value: suggest,
+              onChanged: (newValue) {
                 setState(() {
                   suggest = newValue!;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
-              title: const Text(
-                "Make youtube videos!"
-              ),
+              title: const Text("Make youtube videos!"),
             ),
             CheckboxListTile(
               activeColor: Colors.greenAccent.shade400,
-              value: suggest, onChanged: (newValue) {
+              value: suggest,
+              onChanged: (newValue) {
                 setState(() {
                   suggest = newValue!;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
-              title: const Text(
-                "Go to gym"
-              ),
+              title: const Text("Go to gym"),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  openbox() {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Icon(
+                      Icons.cancel,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 60,
+                  ),
+                  const Text(
+                    "Add ToDo Task ~",
+                    style: TextStyle(color: Colors.greenAccent),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const Text(
+                "Add Text",
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.black,
+                    width: 2,
+                  ),
+                ),
+                child: TextField(
+                  controller: todoController,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: "Enter the task",
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  width: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.greenAccent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      "Add Task",
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
