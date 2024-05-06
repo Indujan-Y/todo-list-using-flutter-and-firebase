@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:random_string/random_string.dart';
+import 'package:todo_list/db_services/database.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,6 +13,66 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool personal = true, college = false, office = false, suggest = false;
   TextEditingController todoController = TextEditingController();
+  Stream? todoStream;
+
+  getOnTheLoad() async {
+    DataBaseService db = DataBaseService();
+    todoStream = await db.getTask(personal
+        ? "PersonalTask"
+        : college
+            ? "CollegeTask"
+            : "OfficeTask");
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Widget getWork() {
+    return StreamBuilder(
+        stream: todoStream,
+        builder: (context, AsyncSnapshot snapshot) {
+          return snapshot.hasData
+              ? Expanded(
+                  child: ListView.builder(
+                      itemCount: snapshot.data.docs.length,
+                      itemBuilder: (context, index) {
+                        DocumentSnapshot docSnap = snapshot.data.docs[index];
+                        return CheckboxListTile(
+                          activeColor: Colors.greenAccent.shade400,
+                          value: docSnap["Yes"],
+                          onChanged: (newValue) async {
+                            DataBaseService db = DataBaseService();
+                            await db.tickMethod(
+                                docSnap["Id"],
+                                personal
+                                    ? "PersonalTask"
+                                    : college
+                                        ? "CollegeTask"
+                                        : "OfficeTask");
+                            setState(() {
+                              db.removeMethod(
+                                  docSnap["Id"],
+                                  personal
+                                      ? "PersonalTask"
+                                      : college
+                                          ? "CollegeTask"
+                                          : "OfficeTask");
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,
+                          title: Text(
+                            docSnap["Work"],
+                          ),
+                        );
+                      }),
+                )
+              : const Center(child: CircularProgressIndicator());
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Hii",
+              "Hii,",
               style: TextStyle(
                 fontSize: 30,
                 color: Colors.black,
@@ -67,6 +129,16 @@ class _HomeScreenState extends State<HomeScreen> {
               "Let's begin the work",
               style: TextStyle(
                 fontSize: 18,
+                color: Colors.black45,
+              ),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            const Text(
+              "Check the task to mark it as completed and remove it from the list.",
+              style: TextStyle(
+                fontSize: 10,
                 color: Colors.black45,
               ),
             ),
@@ -98,12 +170,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       )
                     : GestureDetector(
-                        onTap: () => {
-                          setState(() {
-                            personal = true;
-                            college = false;
-                            office = false;
-                          })
+                        onTap: () async {
+                          personal = true;
+                          college = false;
+                          office = false;
+                          await getOnTheLoad();
+                          setState(() {});
                         },
                         child: const Text(
                           "Personal",
@@ -135,12 +207,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       )
                     : GestureDetector(
-                        onTap: () => {
-                          setState(() {
-                            personal = false;
-                            college = true;
-                            office = false;
-                          })
+                        onTap: () async {
+                          personal = false;
+                          college = true;
+                          office = false;
+                          await getOnTheLoad();
+                          setState(() {});
                         },
                         child: const Text(
                           "College",
@@ -172,12 +244,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       )
                     : GestureDetector(
-                        onTap: () => {
-                          setState(() {
-                            personal = false;
-                            college = false;
-                            office = true;
-                          })
+                        onTap: () async {
+                          personal = false;
+                          college = false;
+                          office = true;
+                          await getOnTheLoad();
+                          setState(() async {});
                         },
                         child: const Text(
                           "Office",
@@ -192,35 +264,14 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(
               height: 20,
             ),
-            CheckboxListTile(
-              activeColor: Colors.greenAccent.shade400,
-              value: suggest,
-              onChanged: (newValue) {
-                setState(() {
-                  suggest = newValue!;
-                });
-              },
-              controlAffinity: ListTileControlAffinity.leading,
-              title: const Text("Make youtube videos!"),
-            ),
-            CheckboxListTile(
-              activeColor: Colors.greenAccent.shade400,
-              value: suggest,
-              onChanged: (newValue) {
-                setState(() {
-                  suggest = newValue!;
-                });
-              },
-              controlAffinity: ListTileControlAffinity.leading,
-              title: const Text("Go to gym"),
-            ),
+            getWork(),
           ],
         ),
       ),
     );
   }
 
-  openbox() {
+  Future openbox() {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -285,11 +336,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.greenAccent,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Center(
-                    child: Text(
-                      "Add Task",
-                      style: TextStyle(
-                        color: Colors.black,
+                  child: GestureDetector(
+                    onTap: () {
+                      String id = randomAlphaNumeric(10);
+                      Map<String, dynamic> usertodo = {
+                        "Work": todoController.text,
+                        "Id": id,
+                        "Yes": false,
+                      };
+                      personal
+                          ? DataBaseService().addPersonalTask(usertodo, id)
+                          : college
+                              ? DataBaseService().addCollegeTask(usertodo, id)
+                              : DataBaseService().addOfficeTask(usertodo, id);
+                      todoController.clear();
+                      Navigator.pop(context);
+                    },
+                    child: const Center(
+                      child: Text(
+                        "Add",
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ),
