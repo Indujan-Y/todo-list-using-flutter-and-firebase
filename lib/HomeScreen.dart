@@ -53,13 +53,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ? "CollegeTask"
                                         : "OfficeTask");
                             setState(() {
-                              db.removeMethod(
-                                  docSnap["Id"],
-                                  personal
-                                      ? "PersonalTask"
-                                      : college
-                                          ? "CollegeTask"
-                                          : "OfficeTask");
+                              Future.delayed(
+                                Durations.extralong4,
+                                () {
+                                  db.removeMethod(
+                                      docSnap["Id"],
+                                      personal
+                                          ? "PersonalTask"
+                                          : college
+                                              ? "CollegeTask"
+                                              : "OfficeTask");
+                                },
+                              );
                             });
                           },
                           controlAffinity: ListTileControlAffinity.leading,
@@ -136,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 10,
             ),
             const Text(
-              "Check the task to mark it as completed and remove it from the list.",
+              "The task will be deleted within 2 seconds once it is marked ad done....!",
               style: TextStyle(
                 fontSize: 10,
                 color: Colors.black45,
